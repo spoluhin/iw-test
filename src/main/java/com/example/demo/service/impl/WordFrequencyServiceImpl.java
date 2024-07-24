@@ -2,46 +2,43 @@ package com.example.demo.service.impl;
 
 import com.example.demo.model.*;
 import com.example.demo.service.*;
-import com.google.common.hash.*;
+import lombok.experimental.*;
 import lombok.extern.slf4j.*;
 import lombok.*;
 import org.springframework.cache.annotation.*;
 import org.springframework.stereotype.*;
 
-import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.Map.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.atomic.*;
 import java.util.regex.*;
 import java.util.stream.*;
 
-import static com.google.common.hash.Funnels.*;
-import static java.util.Collections.reverse;
-import static java.util.Comparator.comparingLong;
+import static java.lang.Math.max;
+import static java.lang.Runtime.*;
+import static java.nio.charset.Charset.*;
+import static java.util.Collections.*;
+import static java.util.Comparator.*;
 import static java.util.concurrent.CompletableFuture.*;
 import static java.util.concurrent.Executors.*;
 import static java.util.stream.Collectors.*;
+import static lombok.AccessLevel.*;
 
 @Slf4j
 @Service
+@FieldDefaults(level = PRIVATE, makeFinal = true)
 public class WordFrequencyServiceImpl implements WordFrequencyService {
 
-    private static final int DEFAULT_THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors() - 1;
+    private static final int DEFAULT_THREAD_POOL_SIZE = max(getRuntime().availableProcessors() - 1, 1);
     private static final String FILE_POSTFIX = ".txt";
 
-
-    // Используется фильтр Блума для уменьшения количества обращений к Map
-    private static final int BLOOM_FILTER_EXPECTED_INSERTIONS = 10_000_000;
-    private static final double BLOOM_FILTER_FALSE_POSITIVE_PROBABILITY = 0.01;
+    // \\b - граница слова, \\w{%d,} - последовательность букв, где %d длина слова
+    private static final String PATTERN_BASE = "\\b\\w{%d,}\\b";
 
     // Stealing pool для увеличения производительности
-    private final ExecutorService executor = newWorkStealingPool(DEFAULT_THREAD_POOL_SIZE);
-    private final BloomFilter<CharSequence> bloomFilter = BloomFilter.create(
-            stringFunnel(Charset.defaultCharset()),
-            BLOOM_FILTER_EXPECTED_INSERTIONS,
-            BLOOM_FILTER_FALSE_POSITIVE_PROBABILITY
-    );
+    ExecutorService executor = newWorkStealingPool(DEFAULT_THREAD_POOL_SIZE);
 
     @Override
     @Cacheable(value = "wordFrequencyCache", key = "#folderPath + #minLength + #topCount")
@@ -53,7 +50,8 @@ public class WordFrequencyServiceImpl implements WordFrequencyService {
 
     private Map<String, Long> processFiles(String folderPath, int minLength) {
         val dir = Paths.get(folderPath);
-
+        val pattern_str = PATTERN_BASE.formatted(minLength + 1);
+        val pattern = Pattern.compile(pattern_str);
         // Обрабатываем все файлы в том числе из вложенных директорий
         try (val files = Files.walk(dir)) {
             val resultedFiles = files.filter(Files::isRegularFile)
@@ -68,7 +66,7 @@ public class WordFrequencyServiceImpl implements WordFrequencyService {
             // Запускаем для обработки каждого отдельного файла отдельный поток Completable Future
             val futures = resultedFiles.stream()
                     .map(file -> runAsync(() ->
-                            processFile(file, minLength, wordFrequency), executor))
+                            processFile(file, wordFrequency, pattern), executor))
                     .toList();
 
             // Дожидаемся завершения обрабокти всех файлов
@@ -77,7 +75,7 @@ public class WordFrequencyServiceImpl implements WordFrequencyService {
 
             return wordFrequency.entrySet()
                     .stream()
-                    .collect(toMap(Map.Entry::getKey, e -> e.getValue().sum()));
+                    .collect(toMap(Entry::getKey, e -> e.getValue().sum()));
         } catch (Exception e) {
             log.error("Error while opening files directory {}, length = {}", folderPath, minLength, e);
             throw new RuntimeException("Error while files processing", e);
@@ -85,11 +83,11 @@ public class WordFrequencyServiceImpl implements WordFrequencyService {
     }
 
     // Обработка конкретного файла построчно
-    private void processFile(Path file, int minLength, final ConcurrentHashMap<String, LongAdder> wordFrequency) {
+    private void processFile(Path file, final ConcurrentHashMap<String, LongAdder> wordFrequency, Pattern pattern) {
         log.info("Start processing file {}", file);
 
-        try (val lines = Files.lines(file, Charset.defaultCharset())) {
-            lines.flatMap(l -> extractWords(l, minLength))
+        try (val lines = Files.lines(file, defaultCharset())) {
+            lines.flatMap(l -> extractWords(l, pattern))
                     .forEach(w -> {
                         try {
                             processWord(w, wordFrequency);
@@ -98,22 +96,18 @@ public class WordFrequencyServiceImpl implements WordFrequencyService {
                         }
                     });
         } catch (Exception e) {
-            log.error("Error while files processing {}, length {}", file, minLength, e);
+            log.error("Error while files processing {}", file, e);
         }
     }
 
     // Обработка конкретного слова
     private void processWord(String word, ConcurrentHashMap<String, LongAdder> wordFrequency) {
-        if (!bloomFilter.mightContain(word)) {
-            wordFrequency.computeIfAbsent(word, k -> new LongAdder()).increment();
-            bloomFilter.put(word);
-        } else {
-            wordFrequency.get(word).increment();
-        }
+        wordFrequency.computeIfAbsent(word, k -> new LongAdder()).increment();
     }
 
     private Collection<WordFrequency> getTopWords(Map<String, Long> wordFrequency, int topCount) {
-        PriorityQueue<Map.Entry<String, Long>> minHeap = new PriorityQueue<>(topCount, comparingLong(Map.Entry::getValue));
+        val minHeap = new PriorityQueue<Entry<String, Long>>(topCount,
+                comparingLong(Entry::getValue));
         for (val entry : wordFrequency.entrySet()) {
             val lastTop = minHeap.peek();
             if (minHeap.size() < topCount) {
@@ -127,7 +121,7 @@ public class WordFrequencyServiceImpl implements WordFrequencyService {
         val topWords = new ArrayList<WordFrequency>();
         int position = 1;
         while (!minHeap.isEmpty()) {
-            Map.Entry<String, Long> entry = minHeap.poll();
+            Entry<String, Long> entry = minHeap.poll();
             topWords.add(new WordFrequency(entry.getKey(), entry.getValue(), topCount - position + 1));
             position++;
         }
@@ -136,16 +130,14 @@ public class WordFrequencyServiceImpl implements WordFrequencyService {
         return topWords;
     }
 
-    private static Stream<String> extractWords(String input, int minLength) {
+    private static Stream<String> extractWords(String input, Pattern pattern) {
         val words = new ArrayList<String>();
-        val pattern = Pattern.compile("\\b\\p{L}+\\b");  // \\b - граница слова, \\p{L}+ - последовательность букв
         val matcher = pattern.matcher(input);
 
         while (matcher.find()) {
             words.add(matcher.group().toLowerCase());
         }
 
-        return words.stream()
-                .filter(w -> w.length() > minLength);
+        return words.stream();
     }
 }
