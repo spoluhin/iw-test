@@ -1,0 +1,54 @@
+
+
+spring:
+  datasource:
+    url: jdbc:postgresql://147.45.139.118:5432/miranda
+    username: miranda
+    password: "|Pu+~)GJju0$B+"
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 30000
+      max-lifetime: 1800000
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
+
+server:
+  port: 8082
+  tomcat:
+    max-threads: 200
+    min-spare-threads: 10
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+deletion:
+  batch-size: 50000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  metrics:
+    export:
+      prometheus:
+        enabled: true

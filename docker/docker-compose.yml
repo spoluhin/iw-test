@@ -1,0 +1,30 @@
+version: '3.3'
+
+services:
+  test-app:
+    build: .
+    container_name: test-app
+    depends_on:
+      - db
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./app:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+
+volumes:
+  app:
+  postgres_data:

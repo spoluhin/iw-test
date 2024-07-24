@@ -1,0 +1,213 @@
+{
+	"info": {
+		"_postman_id": "288bd157-b113-4d46-a008-dadb37298824",
+		"name": "TESTCOLLECTION",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "5709485",
+		"_collection_link": "https://gold-astronaut-4797-1.postman.co/workspace/MLC-API~862d9c7b-701d-4ee4-a0c2-ea51288a4d11/collection/5709485-288bd157-b113-4d46-a008-dadb37298824?action=share&source=collection_link&creator=5709485"
+	},
+	"item": [
+		{
+			"name": "WORDFREQUENCY",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8081/api/v1/words/frequency?folderPath=testfolder&minLength=5&topCount=5",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"v1",
+						"words",
+						"frequency"
+					],
+					"query": [
+						{
+							"key": "folderPath",
+							"value": "testfolder"
+						},
+						{
+							"key": "minLength",
+							"value": "5"
+						},
+						{
+							"key": "topCount",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "WORDFREQUENCY",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8082/api/v1/words/frequency?folderPath=testfolder/data&minLength=5&topCount=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"api",
+								"v1",
+								"words",
+								"frequency"
+							],
+							"query": [
+								{
+									"key": "folderPath",
+									"value": "testfolder/data"
+								},
+								{
+									"key": "minLength",
+									"value": "5"
+								},
+								{
+									"key": "topCount",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Date",
+							"value": "Wed, 24 Jul 2024 12:36:25 GMT"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=60"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						}
+					],
+					"cookie": [],
+					"body": "[\n    {\n        \"word\": \"задача\",\n        \"frequency\": 1529280,\n        \"position\": 1\n    },\n    {\n        \"word\": \"современных\",\n        \"frequency\": 570240,\n        \"position\": 2\n    },\n    {\n        \"word\": \"которые\",\n        \"frequency\": 518400,\n        \"position\": 3\n    },\n    {\n        \"word\": \"развития\",\n        \"frequency\": 466560,\n        \"position\": 4\n    },\n    {\n        \"word\": \"особенности\",\n        \"frequency\": 414720,\n        \"position\": 5\n    },\n    {\n        \"word\": \"зрения\",\n        \"frequency\": 362880,\n        \"position\": 6\n    },\n    {\n        \"word\": \"mauris\",\n        \"frequency\": 330135,\n        \"position\": 7\n    },\n    {\n        \"word\": \"выводы\",\n        \"frequency\": 311040,\n        \"position\": 8\n    },\n    {\n        \"word\": \"требует\",\n        \"frequency\": 311040,\n        \"position\": 9\n    },\n    {\n        \"word\": \"исследований\",\n        \"frequency\": 311040,\n        \"position\": 10\n    }\n]"
+				}
+			]
+		},
+		{
+			"name": "TABLECLEANING",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8082/api/v1/tables/table_1?olderThan=2024-12-03T10:30",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"api",
+						"v1",
+						"tables",
+						"table_1"
+					],
+					"query": [
+						{
+							"key": "olderThan",
+							"value": "2024-12-03T10:30"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "WORDFREQUENCY",
+					"originalRequest": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8082/api/v1/tables/table_1?olderThan=2024-12-03T10:30",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"api",
+								"v1",
+								"tables",
+								"table_1"
+							],
+							"query": [
+								{
+									"key": "olderThan",
+									"value": "2024-12-03T10:30"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "43"
+						},
+						{
+							"key": "Date",
+							"value": "Wed, 24 Jul 2024 11:53:42 GMT"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=60"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						}
+					],
+					"cookie": [],
+					"body": "Deletion process started for table: table_1"
+				}
+			]
+		}
+	]
+}
