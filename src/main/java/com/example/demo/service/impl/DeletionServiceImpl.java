@@ -21,12 +21,8 @@ import static java.util.concurrent.Executors.*;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DeletionServiceImpl implements DeletionService {
 
-    private static final int DEFAULT_THREAD_POOL_SIZE = max(getRuntime().availableProcessors() - 1, 1);
-
     // Отслеживает, есть ли уже запущенный процесс удаления для конкретной таблицы
     ConcurrentHashMap<String, Boolean> activeDeleteTasks = new ConcurrentHashMap<>();
-
-    ExecutorService executorService = newWorkStealingPool(DEFAULT_THREAD_POOL_SIZE);
 
     JdbcConnector jdbcConnector;
 
@@ -50,7 +46,7 @@ public class DeletionServiceImpl implements DeletionService {
     // делим его на доступное количество потоков
     // и пачками чистим таблицу в разных потоках
     public void performOptimizedDeletion(String tableName, LocalDateTime olderThan) {
-        val idsToDelete = jdbcConnector.getIds(tableName, olderThan);
+        val idsToDelete = jdbcConnector.getIds(tableName, olderThan, batchSize);
         try {
             log.info("Load {} ids for deletion, batch size {}", idsToDelete.size(), batchSize);
 
@@ -59,7 +55,7 @@ public class DeletionServiceImpl implements DeletionService {
                 if (ids.isEmpty()) {
                     continue;
                 }
-                jdbcConnector.batchDelete(tableName, ids, executorService);
+                jdbcConnector.batchDelete(tableName, ids);
             }
 
         } finally {

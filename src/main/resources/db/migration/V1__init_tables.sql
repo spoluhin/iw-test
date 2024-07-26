@@ -3,7 +3,7 @@ DO $$
         i INTEGER;
     BEGIN
         -- Создание таблиц
-        FOR i IN 1..10 LOOP
+        FOR i IN 1..3 LOOP
                 EXECUTE format('DROP TABLE IF EXISTS table_%s;', i);
 
                 EXECUTE format('
@@ -18,7 +18,7 @@ DO $$
             END LOOP;
 
         -- Заполнение таблиц тестовыми данными
-        FOR i IN 1..10 LOOP
+        FOR i IN 1..3 LOOP
                 EXECUTE format('
             INSERT INTO table_%s (col1, col2, col3, col4)
             SELECT
@@ -26,7 +26,7 @@ DO $$
                 (random() * 100)::INTEGER,
                 random() * 1000,
                 NOW() - (random() * 100 * INTERVAL ''1 day'')
-            FROM generate_series(1, 1000000);
+            FROM generate_series(1, 15000000);
         ', i);
             END LOOP;
     END $$;
