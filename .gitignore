@@ -1,3 +1,5 @@
+docker/app.jar
+
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
