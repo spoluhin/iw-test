@@ -4,6 +4,8 @@ DO $$
     BEGIN
         -- Создание таблиц
         FOR i IN 1..10 LOOP
+                EXECUTE format('DROP TABLE IF EXISTS table_%s;', i);
+
                 EXECUTE format('
             CREATE TABLE table_%s (
                 id SERIAL PRIMARY KEY,
@@ -23,7 +25,7 @@ DO $$
                 md5(random()::text),
                 (random() * 100)::INTEGER,
                 random() * 1000,
-                NOW() - (random() * 10000 * INTERVAL ''1 second'')
+                NOW() - (random() * 100 * INTERVAL ''1 day'')
             FROM generate_series(1, 1000000);
         ', i);
             END LOOP;

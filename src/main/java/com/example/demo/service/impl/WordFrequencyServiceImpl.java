@@ -8,6 +8,7 @@ import lombok.*;
 import org.springframework.cache.annotation.*;
 import org.springframework.stereotype.*;
 
+import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.Map.*;
@@ -18,7 +19,6 @@ import java.util.stream.*;
 
 import static java.lang.Math.max;
 import static java.lang.Runtime.*;
-import static java.nio.charset.Charset.*;
 import static java.util.Collections.*;
 import static java.util.Comparator.*;
 import static java.util.concurrent.CompletableFuture.*;
@@ -35,7 +35,9 @@ public class WordFrequencyServiceImpl implements WordFrequencyService {
     private static final String FILE_POSTFIX = ".txt";
 
     // \\b - граница слова, \\w{%d,} - последовательность букв, где %d длина слова
-    private static final String PATTERN_BASE = "\\b\\w{%d,}\\b";
+
+//    Pattern pattern = Pattern.compile("\\b\\p{L}\\b");
+    private static final String PATTERN_BASE = "\\b\\p{L}{%d,}\\b";
 
     // Stealing pool для увеличения производительности
     ExecutorService executor = newWorkStealingPool(DEFAULT_THREAD_POOL_SIZE);
@@ -86,7 +88,7 @@ public class WordFrequencyServiceImpl implements WordFrequencyService {
     private void processFile(Path file, final ConcurrentHashMap<String, LongAdder> wordFrequency, Pattern pattern) {
         log.info("Start processing file {}", file);
 
-        try (val lines = Files.lines(file, defaultCharset())) {
+        try (val lines = Files.lines(file, StandardCharsets.UTF_8)) {
             lines.flatMap(l -> extractWords(l, pattern))
                     .forEach(w -> {
                         try {

@@ -1,7 +1,7 @@
 cd ..
-mvn clean install -DskipTests=true
+gradle jar
 cd -
-cp ../target/*jar ./app.jar
+cp ../build/libs/*jar ./app.jar
 docker-compose build
 docker-compose up -d
 docker logs -f test-app
